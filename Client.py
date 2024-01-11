@@ -1,31 +1,27 @@
 import socket
 
-# Connecting to the server
+# Client configuration
+host = 'localhost'
+port = 9090
 
-def connection():
-    global s
-    global host
-    global port
-    global username
+# Start the client and connect to the server
+def start_client():
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((host, port))
+    print("Connected to server")
 
-    host = ''
-    port = 9090
+    while True:
+        command = input("Enter command (signup/login): ")
+        client.send(command.encode('utf-8'))
+        
+        if command == "signup" or command == "login":
+            username = input("Enter your username: ")
+            password = input("Enter your password: ")
+            client.send(username.encode('utf-8'))
+            client.send(password.encode('utf-8'))
 
-    s = socket.socket()
-    s.connect((host , port))
-    print ("connecttion established")
+        response = client.recv(1024).decode('utf-8')
+        print(f"Server response: {response}")
 
-    # Ask either to login or sign up
-    # Send the option selected
-    # Use input function in both cases
-
-    def input():
-        username = input("Enter your Username - ")
-        password = input("\nEnter your Password - ")
-        info = str(username) + str(password)
-        s.send(info)
-
-
-
-
-
+# Start the client
+start_client()
