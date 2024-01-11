@@ -1,81 +1,64 @@
 import socket
+import threading
 
-# Connecting to the client
+# Server configuration
+host = 'localhost'
+port = 9090
 
-def connection():
-    global host
-    global port
-    global s
+# Start the server
+def start_server():
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind((host, port))
+    server.listen()
+    print("Server listening on port", port)
 
-    # Host IP is yet to find
-    host = ''
-    port = 9090
+    while True:
+        conn, addr = server.accept()
+        print(f"Connection from {addr}")
+        threading.Thread(target=handle_client, args=(conn,)).start()
 
-    s = socket.socket()
-    s.bind((host, port))
-    s.listen(10)
-    print ("looking for users")
+# Handle client connections
+def handle_client(conn):
+    try:
+        while True:
+            data = conn.recv(1024).decode('utf-8')
+            if not data:
+                break
+            print(f"Received data: {data}")
+            process_data(data, conn)
+    finally:
+        conn.close()
 
-    global conn1
-    global addr1
-    conn1 , addr1 = s.accept()
-
-
-
-# Verifying users LogIn Data
-
-def users_list():
-
-    # Check the option selected
-    # Use signing_up function if signing up
-    # Use code below if signing in
-
-    login_input = socket.socket
-    users_login_input = login_input.recv(1024)
-    user_login = users_login_input.decode(str = 'utf-8' , error = 'strict')
-    file = open( 'users_info.txt' , 'a')
-    users_data = file.readline()
-
-    # Make a loop to try again and again (not if else)
-
-    if users_login in users_data:
-
-        # Use signing_in function here
-        print ("welcome")
+# Process received data
+def process_data(data, conn):
+    if data == "signup":
+        signup(conn)
+    elif data == "login":
+        login(conn)
     else:
-        print ("Login ID or Password is incorrect")
-    file.close()
+        conn.send("Invalid command".encode('utf-8'))
 
-    global user_login_info
-    user_login_info = user_login
-    return user_login_info
+# Handle user signup
+def signup(conn):
+    username = conn.recv(1024).decode('utf-8')
+    password = conn.recv(1024).decode('utf-8')
+    # Add hashing and validation here
+    with open('users_info.txt', 'a') as file:
+        file.write(f"{username},{password}\n")
+    conn.send("Signup successful".encode('utf-8'))
 
+# Handle user login
+def login(conn):
+    username = conn.recv(1024).decode('utf-8')
+    password = conn.recv(1024).decode('utf-8')
+    # Add authentication logic here
+    with open('users_info.txt', 'r') as file:
+        for line in file:
+            user, passw = line.strip().split(',')
+            if user == username and passw == password:
+                conn.send("Login successful".encode('utf-8'))
+                return
+    conn.send("Invalid username or password".encode('utf-8'))
 
-# User signing up
-
-
-def signing_up():
-
-    file = open('users_info.txt' , 'a')
-    file.write(user_login_info)
-    file.close()
-
-    user_file = open('username.txt' , 'a')
-
-    # Make a Thread
-    # Close the user_file
-
-
-def signing_in():
-
-
-
-
-
-
-
-
-
-
-
-
+# Start the server
+start_server()
